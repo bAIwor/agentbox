@@ -37,7 +37,7 @@
         </div>
         <div class="info-item">
           <span class="label">Arsitektur:</span>
-          <span class="value">Isolated Sandbox (Large)</span>
+          <span class="value">Isolated Sandbox · GMI Cloud</span>
         </div>
         <div class="info-item">
           <span class="label">Inference:</span>
@@ -56,8 +56,29 @@
           <option value="deepseek-ai/DeepSeek-V3.2" selected>DeepSeek-V3.2 (Cepat & Cerdas)</option>
           <option value="deepseek-ai/DeepSeek-R1-0528">DeepSeek-R1 (Penalaran / Reasoning)</option>
           <option value="deepseek-ai/DeepSeek-V4-Flash">DeepSeek-V4-Flash (Ultra-Fast)</option>
+          <option value="deepseek-ai/DeepSeek-V3-0324">DeepSeek-V3-0324</option>
+          <option value="deepseek-ai/DeepSeek-V4-Flash-0731">DeepSeek-V4-Flash-0731</option>
         </select>
         <small id="modelSourceNote" class="model-hint">Memuat model dari GMI...</small>
+      </div>
+
+      <!-- Token Akses (hanya perlu kalau server pakai AGENT_ACCESS_TOKEN) -->
+      <div class="card token-card">
+        <button type="button" id="tokenToggle" class="token-toggle" aria-expanded="false">
+          <span>Token Akses</span>
+          <span class="token-caret">▾</span>
+        </button>
+        <div id="tokenWrap" class="token-wrap">
+          <input
+            type="password"
+            id="tokenInput"
+            class="token-input"
+            placeholder="AGENT_ACCESS_TOKEN"
+            autocomplete="off"
+            spellcheck="false"
+          >
+          <small class="model-hint">Dikirim sebagai header <code>X-Agent-Token</code>. Disimpan di sessionStorage, hilang saat tab ditutup.</small>
+        </div>
       </div>
 
       <div class="sidebar-footer">

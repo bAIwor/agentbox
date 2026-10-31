@@ -52,11 +52,14 @@ app.get('/health', (req, res) => {
 
 // List available models from GMI MaaS
 app.get('/api/models', async (req, res) => {
+  // Model default = DEFAULT_MODEL / GMI_MODELS / fallback, sesuai yang dipakai
+  // server saat chat. Dikirim ke browser supaya dropdown tidak asal pilih index 0.
+  const defaultModel = await resolveModel(null).catch(() => KNOWN_MODELS[0]);
   try {
     const live = await listModels();
-    res.json({ models: live || KNOWN_MODELS, live: Boolean(live) });
+    res.json({ models: live || KNOWN_MODELS, live: Boolean(live), default: defaultModel });
   } catch (err) {
-    res.json({ models: KNOWN_MODELS, live: false, note: err.message });
+    res.json({ models: KNOWN_MODELS, live: false, default: defaultModel, note: err.message });
   }
 });
 

@@ -217,6 +217,69 @@ body {
   outline: none;
 }
 
+/* Token akses (opsional) */
+.token-card {
+  padding: 10px 14px;
+}
+
+.token-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 12px;
+  font-family: inherit;
+  cursor: pointer;
+  padding: 0;
+}
+
+.token-toggle:hover {
+  color: var(--text-main);
+}
+
+.token-caret {
+  transition: transform 0.2s ease;
+}
+
+.token-card.open .token-caret {
+  transform: rotate(180deg);
+}
+
+.token-wrap {
+  display: none;
+  margin-top: 10px;
+}
+
+.token-card.open .token-wrap {
+  display: block;
+}
+
+.token-input {
+  width: 100%;
+  background: var(--bg-dark);
+  border: 1px solid var(--border);
+  color: var(--text-main);
+  padding: 8px 10px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-family: 'JetBrains Mono', monospace;
+  outline: none;
+}
+
+.token-input:focus {
+  border-color: var(--primary);
+}
+
+/* Indikator "sedang berpikir" saat model reasoning stream */
+.thinking {
+  color: var(--text-muted);
+  font-style: italic;
+  font-size: 13px;
+}
+
 .sidebar-footer {
   margin-top: auto;
   font-size: 11px;

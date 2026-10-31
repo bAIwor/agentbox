@@ -5,23 +5,80 @@ const sendBtn = document.getElementById('sendBtn');
 const modelSelect = document.getElementById('modelSelect');
 const modelSourceNote = document.getElementById('modelSourceNote');
 const clearChatBtn = document.getElementById('clearChatBtn');
+const tokenInput = document.getElementById('tokenInput');
+const tokenToggle = document.getElementById('tokenToggle');
+const tokenWrap = document.getElementById('tokenWrap');
+
+const TOKEN_STORAGE_KEY = 'baiwor.agent.token';
 
 let chatHistory = [];
 
-// Fetch live models from GMI Cloud
+/* ------------------------------------------------------------------ *
+ * Token akses (opsional)
+ * Hanya dibutuhkan kalau server dijalankan dengan AGENT_ACCESS_TOKEN.
+ * Disimpan di sessionStorage -> hilang saat tab ditutup, tidak pernah
+ * ditulis ke disk atau dikirim ke server selain sebagai header.
+ * ------------------------------------------------------------------ */
+function getToken() {
+  try {
+    return sessionStorage.getItem(TOKEN_STORAGE_KEY) || '';
+  } catch {
+    return '';
+  }
+}
+
+function setToken(value) {
+  try {
+    if (value) sessionStorage.setItem(TOKEN_STORAGE_KEY, value);
+    else sessionStorage.removeItem(TOKEN_STORAGE_KEY);
+  } catch {
+    // sessionStorage tidak tersedia (mis. mode privat) - token tetap jalan di memory
+  }
+}
+
+function authHeaders() {
+  const headers = { 'Content-Type': 'application/json' };
+  const token = getToken();
+  if (token) headers['X-Agent-Token'] = token;
+  return headers;
+}
+
+if (tokenInput) {
+  tokenInput.value = getToken();
+  tokenInput.addEventListener('input', () => setToken(tokenInput.value.trim()));
+}
+
+if (tokenToggle && tokenWrap) {
+  tokenToggle.addEventListener('click', () => {
+    tokenWrap.classList.toggle('open');
+  });
+}
+
+/* ------------------------------------------------------------------ *
+ * Model live dari GMI Cloud
+ * ------------------------------------------------------------------ */
 async function loadModels() {
   try {
-    const res = await fetch('/api/models');
+    const res = await fetch('/api/models', { headers: authHeaders() });
     const data = await res.json();
     if (data.models && data.models.length > 0) {
       modelSelect.innerHTML = '';
-      data.models.forEach((m, idx) => {
+      data.models.forEach((m) => {
         const opt = document.createElement('option');
         opt.value = m;
         opt.textContent = m;
-        if (idx === 0) opt.selected = true;
         modelSelect.appendChild(opt);
       });
+
+      // Pilih model default server (DEFAULT_MODEL). Pakai .value - lebih
+      // andal daripada option.selected, dan fallback ke index 0 kalau
+      // model default tidak ada di daftar.
+      if (data.default && data.models.includes(data.default)) {
+        modelSelect.value = data.default;
+      } else {
+        modelSelect.selectedIndex = 0;
+      }
+
       modelSourceNote.textContent = data.live ? '● Model live dari GMI Cloud' : 'Fallback model aktif';
       modelSourceNote.style.color = data.live ? '#10b981' : '#9ca3af';
     }
@@ -111,7 +168,7 @@ chatForm.addEventListener('submit', async (e) => {
   try {
     const response = await fetch('/api/chat', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: authHeaders(),
       body: JSON.stringify({
         messages: chatHistory,
         model: modelSelect.value,
@@ -121,40 +178,86 @@ chatForm.addEventListener('submit', async (e) => {
 
     if (!response.ok) {
       const errJson = await response.json().catch(() => ({}));
-      throw new Error(errJson.error || `HTTP ${response.status}`);
+      const hint = response.status === 401
+        ? ' - buka panel "Token Akses" di sidebar lalu isi AGENT_ACCESS_TOKEN.'
+        : '';
+      throw new Error((errJson.error || `HTTP ${response.status}`) + hint);
     }
 
     const reader = response.body.getReader();
     const decoder = new TextDecoder();
+
+    // PENTING: penanda teks antar-chunk. Tanpa buffer ini, satu baris
+    // "data: {...}" yang kepotong di tengah chunk akan gagal di-JSON.parse
+    // dan isinya dibuang diam-diam.
+    let buffer = '';
     let assistantText = '';
-    assistantBody.innerHTML = '';
+    let reasoningText = '';
+    let streamDone = false;
+
+    const render = () => {
+      if (assistantText) {
+        assistantBody.innerHTML = formatText(assistantText);
+      } else {
+        assistantBody.innerHTML = '<span class="thinking">🤔 Sedang berpikir…</span>';
+      }
+      messagesList.scrollTop = messagesList.scrollHeight;
+    };
+
+    const handleLine = (line) => {
+      if (!line.startsWith('data: ')) return;
+      const raw = line.slice(6).trim();
+      if (raw === '[DONE]') {
+        streamDone = true;
+        return;
+      }
+      if (!raw) return;
+      try {
+        const parsed = JSON.parse(raw);
+        if (parsed.error) {
+          assistantText += `\n*[Error: ${parsed.error}]*`;
+          return;
+        }
+        const delta = parsed.choices && parsed.choices[0] && parsed.choices[0].delta;
+        if (delta) {
+          if (delta.reasoning_content) reasoningText += delta.reasoning_content;
+          if (delta.content) assistantText += delta.content;
+        }
+      } catch {
+        // bukan JSON (heartbeat / baris kumang) - abaikan
+      }
+    };
+
+    render();
 
     while (true) {
       const { done, value } = await reader.read();
       if (done) break;
 
-      const chunk = decoder.decode(value);
-      const lines = chunk.split('\n');
+      // { stream: true } wajib: karakter multi-byte (—, ü, emoji) bisa
+      // terpotong di batas chunk dan harus disambung, bukan di-decode ulang.
+      buffer += decoder.decode(value, { stream: true });
+
+      const lines = buffer.split('\n');
+      buffer = lines.pop() ?? '';   // simpan baris terakhir yg belum lengkap
 
       for (const line of lines) {
-        if (line.startsWith('data: ')) {
-          const raw = line.slice(6).trim();
-          if (raw === '[DONE]') break;
-          try {
-            const parsed = JSON.parse(raw);
-            if (parsed.error) {
-              assistantText += `\n*[Error: ${parsed.error}]*`;
-            } else if (parsed.choices && parsed.choices[0]?.delta?.content) {
-              assistantText += parsed.choices[0].delta.content;
-            }
-          } catch {
-            // ignore non-json
-          }
-        }
+        handleLine(line);
+        if (streamDone) break;
       }
-      assistantBody.innerHTML = formatText(assistantText || '...');
-      messagesList.scrollTop = messagesList.scrollHeight;
+
+      render();
+      if (streamDone) break;
     }
+
+    // Sisa buffer kalau stream ditutup tanpa [DONE].
+    if (!streamDone) {
+      buffer += decoder.decode();
+      if (buffer.trim()) handleLine(buffer);
+    }
+    render();
+
+    await reader.cancel().catch(() => {});
 
     chatHistory.push({ role: 'assistant', content: assistantText });
   } catch (err) {

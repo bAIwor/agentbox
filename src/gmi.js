@@ -24,7 +24,7 @@ export const KNOWN_MODELS = [
   'deepseek-ai/DeepSeek-V3-0324',
   'deepseek-ai/DeepSeek-R1-0528',
   'deepseek-ai/DeepSeek-V4-Flash',
-  'deepseek-ai/DeepSeek-V3.1-Terminus'
+  'deepseek-ai/DeepSeek-V4-Flash-0731'
 ];
 
 // Cache daftar model dari /v1/models supaya tidak memanggil API tiap request.
