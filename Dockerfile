@@ -1,16 +1,20 @@
-# Multi-stage lightweight Node.js 22 runtime for GMI Agentbox
-FROM node:22-alpine
+# bAIwor Agentbox - runtime image untuk GMI Cloud Agentbox
+#
+# PENTING: pakai basis Debian (bookworm-slim), BUKAN alpine.
+# Docs GMI (agentbox-sdk/agents.md): "The image needs `bash` if you use the shell."
+# Perintah sandbox dieksekusi lewat bash, sedangkan alpine hanya punya busybox `ash`.
+FROM node:22-bookworm-slim
 
 WORKDIR /app
 
-# Install app dependencies
+# Install app dependencies (layer cache)
 COPY package*.json ./
-RUN npm install --omit=dev
+RUN npm install --omit=dev && npm cache clean --force
 
-# Copy application code
+# Copy application code (.dockerignore meniadakan .git, node_modules, dan .env)
 COPY . .
 
-# GMI Cloud Agentbox uses port 8080 by default
+# GMI Cloud Agentbox memetakan trafik eksternal ke Internal Port ini (default 8080)
 EXPOSE 8080
 
 # Environment defaults

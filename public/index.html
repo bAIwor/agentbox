@@ -50,12 +50,12 @@
             <span class="bal-amount" id="bnbBal">Loading...</span>
           </div>
           <div class="bal-box">
-            <span class="bal-symbol">IAO</span>
+            <span class="bal-symbol" id="iaoSym">IAO</span>
             <span class="bal-amount" id="iaoBal">Loading...</span>
           </div>
         </div>
         <div class="wallet-subtext">
-          <span>Ptah Trade IAO Verified</span>
+          <span id="walletStatus">Ptah Trade IAO Verified</span>
         </div>
       </div>
 
@@ -63,11 +63,12 @@
       <div class="card model-card">
         <label for="modelSelect">GMI MaaS Model:</label>
         <select id="modelSelect">
-          <option value="deepseek-ai/DeepSeek-V3" selected>DeepSeek-V3 (Fast & Smart)</option>
-          <option value="deepseek-ai/DeepSeek-R1">DeepSeek-R1 (Reasoning)</option>
-          <option value="meta-llama/Llama-3.3-70B-Instruct">Llama 3.3 70B</option>
-          <option value="Qwen/Qwen2.5-72B-Instruct">Qwen 2.5 72B</option>
+          <option value="deepseek-ai/DeepSeek-V3.2" selected>DeepSeek-V3.2 (Fast &amp; Smart)</option>
+          <option value="deepseek-ai/DeepSeek-V3-0324">DeepSeek-V3-0324</option>
+          <option value="deepseek-ai/DeepSeek-R1-0528">DeepSeek-R1-0528 (Reasoning)</option>
+          <option value="deepseek-ai/DeepSeek-V4-Flash">DeepSeek-V4-Flash</option>
         </select>
+        <p class="wallet-subtext" id="modelHint">Memuat daftar model live...</p>
       </div>
 
       <div class="sidebar-footer">

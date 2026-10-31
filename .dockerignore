@@ -1,0 +1,10 @@
+# Jangan ikut ter-bake ke image
+.git
+.github
+.gitignore
+.env
+.env.*
+node_modules
+npm-debug.log
+*.log
+.DS_Store
