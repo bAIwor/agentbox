@@ -1,6 +1,6 @@
 {
   "name": "@baiwor/agentbox",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "bAIwor Agentbox - Autonomous Web3 & AI Agent Playground for GMI Cloud",
   "main": "src/server.js",
   "type": "module",
