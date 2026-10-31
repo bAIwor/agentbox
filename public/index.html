@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>bAIwor Agentbox · Autonomous AI & Web3 Copilot</title>
+  <title>bAIwor Agentbox · Autonomous AI Assistant</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220%22%3E<text y=%2226%22 font-size=%2226%22>🎭</text></svg>">
   <link rel="stylesheet" href="style.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -30,45 +30,34 @@
         </div>
       </div>
 
-      <!-- Web3 Agentic Card -->
-      <div class="card web3-card">
+      <!-- Agent Profile Card -->
+      <div class="card info-card">
         <div class="card-header">
-          <span class="badge">Web3 Agentic</span>
-          <button id="refreshWalletBtn" title="Refresh On-Chain Data">🔄</button>
+          <span class="badge">AI Copilot</span>
         </div>
-        <div class="wallet-item">
-          <span class="label">Agent ID:</span>
-          <span class="value highlight" id="agentIdVal">rupiah.ai</span>
+        <div class="info-item">
+          <span class="label">Arsitektur:</span>
+          <span class="value">Isolated Sandbox (Large)</span>
         </div>
-        <div class="wallet-item">
-          <span class="label">EVM Chain:</span>
-          <span class="value">BSC (Chain 56)</span>
+        <div class="info-item">
+          <span class="label">Inference:</span>
+          <span class="value highlight">GMI Low-Latency MaaS</span>
         </div>
-        <div class="wallet-balances">
-          <div class="bal-box">
-            <span class="bal-symbol">BNB</span>
-            <span class="bal-amount" id="bnbBal">Loading...</span>
-          </div>
-          <div class="bal-box">
-            <span class="bal-symbol" id="iaoSym">IAO</span>
-            <span class="bal-amount" id="iaoBal">Loading...</span>
-          </div>
-        </div>
-        <div class="wallet-subtext">
-          <span id="walletStatus">Ptah Trade IAO Verified</span>
+        <div class="info-item">
+          <span class="label">Bahasa:</span>
+          <span class="value">ID · Banyumasan · EN</span>
         </div>
       </div>
 
       <!-- Model Selector -->
       <div class="card model-card">
-        <label for="modelSelect">GMI MaaS Model:</label>
+        <label for="modelSelect">GMI Frontier Model:</label>
         <select id="modelSelect">
-          <option value="deepseek-ai/DeepSeek-V3.2" selected>DeepSeek-V3.2 (Fast &amp; Smart)</option>
-          <option value="deepseek-ai/DeepSeek-V3-0324">DeepSeek-V3-0324</option>
-          <option value="deepseek-ai/DeepSeek-R1-0528">DeepSeek-R1-0528 (Reasoning)</option>
-          <option value="deepseek-ai/DeepSeek-V4-Flash">DeepSeek-V4-Flash</option>
+          <option value="deepseek-ai/DeepSeek-V3.2" selected>DeepSeek-V3.2 (Cepat & Cerdas)</option>
+          <option value="deepseek-ai/DeepSeek-R1-0528">DeepSeek-R1 (Penalaran / Reasoning)</option>
+          <option value="deepseek-ai/DeepSeek-V4-Flash">DeepSeek-V4-Flash (Ultra-Fast)</option>
         </select>
-        <p class="wallet-subtext" id="modelHint">Memuat daftar model live...</p>
+        <small id="modelSourceNote" class="model-hint">Memuat model dari GMI...</small>
       </div>
 
       <div class="sidebar-footer">
@@ -84,7 +73,7 @@
     <main class="chat-container">
       <header class="chat-header">
         <div class="chat-header-info">
-          <h2>bAIwor Web3 Copilot</h2>
+          <h2>bAIwor AI Assistant</h2>
           <span class="chat-badge">GMI Clouder Edition</span>
         </div>
         <div class="chat-header-actions">
@@ -98,11 +87,11 @@
           <div class="msg-avatar">🎭</div>
           <div class="msg-body">
             <h3>Sugeng Rawuh! Jenengku bAIwor.</h3>
-            <p>Aku asisten AI agentik sing mlaku langsung nang sandbox <strong>GMI Cloud Agentbox</strong> lan terintegrasi karo ekosistem <strong>Binance Agentic Wallet</strong>.</p>
-            <p>Ana sing bisa tak bantu dina iki seputar koding, analisis on-chain token IAO/BNB, utawa infrastruktur AI?</p>
+            <p>Aku asisten agen AI cerdas sing mlaku langsung nang sandbox <strong>GMI Cloud Agentbox</strong> kanthi kacepetan dhuwur.</p>
+            <p>Ana sing bisa tak bantu dina iki? Kodingan, riset, penalaran kompleks, utawa optimasi komputasi cloud?</p>
             <div class="quick-prompts">
-              <button class="quick-btn" data-prompt="Jelaskan peran bAIwor di dalam ekosistem GMI Cloud Agentbox dan Binance Agentic Wallet!">💡 Profil bAIwor</button>
-              <button class="quick-btn" data-prompt="Analisis potensi token IAO dan ekosistem Ptah Trade di BSC!">📊 Analisis Token IAO</button>
+              <button class="quick-btn" data-prompt="Jelaskan peran bAIwor di dalam ekosistem GMI Cloud Agentbox!">💡 Profil bAIwor</button>
+              <button class="quick-btn" data-prompt="Bantu saya merancang arsitektur aplikasi AI yang efisien di cloud.">🛠️ Solusi Koding & AI</button>
               <button class="quick-btn" data-prompt="Bagaimana cara memanfaatkan komputasi GPU dan Sandbox di GMI Cloud secara hemat?">⚡ Tips GMI Cloud</button>
             </div>
           </div>

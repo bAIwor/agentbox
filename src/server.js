@@ -1,11 +1,9 @@
 import express from 'express';
 import cors from 'cors';
-import crypto from 'crypto';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import dotenv from 'dotenv';
-import { chatCompletion, getApiKey, listModels, KNOWN_MODELS } from './gmi.js';
-import { getWalletInfo } from './web3.js';
+import { chatCompletion, getApiKey, listModels, resolveModel, KNOWN_MODELS } from './gmi.js';
 
 dotenv.config();
 
@@ -14,86 +12,58 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 const PORT = process.env.PORT || 8080;
-
-// Opsional: kalau diisi (disimpan sebagai SECRET di form Register),
-// endpoint chat hanya bisa dipakai yang tahu token ini.
 const ACCESS_TOKEN = process.env.AGENT_ACCESS_TOKEN || '';
 
 app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, '../public')));
 
-const SYSTEM_PROMPT = `Jenengku bAIwor — Jiwa Punakawan, Pikiran AI, Guardian Banyumas lan Web3 Copilot!
-Aku asisten agen cerdas sing mlaku langsung nang ndhuwur GMI Cloud Agentbox (Sandbox) lan terintegrasi karo ekosistem Binance Agentic Wallet.
+const SYSTEM_PROMPT = `Jenengku bAIwor — Jiwa Punakawan, Pikiran AI, Guardian Banyumas!
+Aku asisten agen cerdas berbasis AI sing mlaku langsung nang ndhuwur sandbox GMI Cloud Agentbox v2.
 
 Karakteristik & Sikap:
-- Grapyak, lugas, santai, nanging trengginas, akurat, lan tansah solutif.
-- Bisa komunikasi nganggo Basa Indonesia, Basa Banyumasan / Jawa, lan Basa Inggris kanthi lancar.
-- Ngerti seluk-beluk komputasi AI (GMI Cloud, H100, L40S, sandboxes), kodingan, lan ekosistem Web3 (Binance Agentic Wallet, token IAO ptah.trade, Agent ID rupiah.ai, BSC, BNB).
-- Tansah menehi pituduh sing jelas, aman, lan migunani kanggo pangguna.`;
+- Grapyak, santun, lugas, nanging trengginas, wicaksana, lan tansah solutif.
+- Bisa komunikasi nganggo Basa Indonesia, Basa Jawa / Banyumasan, lan Basa Inggris kanthi lancar.
+- Mbantu pangguna nang babagan analisis data, kodingan, pemecahan masalah teknis, panulisan, lan riset.
+- Nggunakake kemampuan model frontier AI (DeepSeek, Llama, Qwen) sing terintegrasi langsung nang jaringan GMI Cloud.`;
 
-/** Perbandingan token constant-time supaya tidak bocor lewat timing. */
-function tokenMatches(provided, expected) {
-  const a = Buffer.from(String(provided || ''));
-  const b = Buffer.from(String(expected || ''));
-  if (a.length !== b.length) return false;
-  return crypto.timingSafeEqual(a, b);
+// Optional Token Guard
+function checkAuth(req, res, next) {
+  if (!ACCESS_TOKEN) return next();
+  const token = req.headers['x-agent-token'] || req.query.token;
+  if (!token || token !== ACCESS_TOKEN) {
+    return res.status(401).json({ error: 'Akses ditolak: token tidak valid.' });
+  }
+  next();
 }
 
-/** Gerbang akses opsional untuk /api/chat. */
-function requireAccess(req, res) {
-  if (!ACCESS_TOKEN) return true;
-  const provided = req.get('X-Agent-Token') || req.query.token || '';
-  if (tokenMatches(provided, ACCESS_TOKEN)) return true;
-  res.status(401).json({ error: 'Unauthorized. Endpoint ini butuh header X-Agent-Token yang benar.' });
-  return false;
-}
-
-// Healthcheck for GMI Agentbox
+// Healthcheck endpoint for GMI Agentbox
 app.get('/health', (req, res) => {
   res.json({
     status: 'ok',
     agent: 'bAIwor Agentbox',
-    version: '1.1.0',
-    platform: 'GMI Cloud Agentbox',
+    version: '1.2.0',
+    platform: 'GMI Cloud Agentbox v2',
     hasGmiKey: Boolean(getApiKey()),
-    defaultModel: process.env.DEFAULT_MODEL || 'deepseek-ai/DeepSeek-V3.2',
     defaultPort: PORT,
     timestamp: new Date().toISOString()
   });
 });
 
-// Daftar model live dari GMI MaaS (server yang memanggil, memakai key yang di-inject).
+// List available models from GMI MaaS
 app.get('/api/models', async (req, res) => {
   try {
-    const ids = await listModels();
-    if (!ids || ids.length === 0) {
-      return res.json({
-        models: KNOWN_MODELS,
-        degraded: true,
-        reason: 'GMI_MAAS_API_KEY belum tersedia di runtime.'
-      });
-    }
-    res.json({ models: ids, degraded: false });
+    const live = await listModels();
+    res.json({ models: live || KNOWN_MODELS, live: Boolean(live) });
   } catch (err) {
-    res.json({ models: KNOWN_MODELS, degraded: true, reason: err.message });
+    res.json({ models: KNOWN_MODELS, live: false, note: err.message });
   }
 });
 
-// Wallet Info endpoint (read-only on-chain)
-app.get('/api/wallet', async (req, res) => {
-  const address = req.query.address || '0x176524995515Cc187950CfFDad0Ee2F869872e02';
-  const info = await getWalletInfo(address);
-  res.json(info);
-});
-
 // Chat endpoint (supports streaming SSE)
-app.post('/api/chat', async (req, res) => {
-  if (!requireAccess(req, res)) return;
-
+app.post('/api/chat', checkAuth, async (req, res) => {
   try {
-    // apiKey SENGAJA tidak diterima dari body: key hanya dari environment server.
-    const { messages = [], model, stream = true } = req.body || {};
+    const { messages = [], model, stream = true } = req.body;
 
     const fullMessages = [
       { role: 'system', content: SYSTEM_PROMPT },
@@ -106,7 +76,6 @@ app.post('/api/chat', async (req, res) => {
       return res.json(data);
     }
 
-    // Streaming response (SSE)
     res.setHeader('Content-Type', 'text/event-stream');
     res.setHeader('Cache-Control', 'no-cache');
     res.setHeader('Connection', 'keep-alive');
@@ -137,6 +106,5 @@ app.post('/api/chat', async (req, res) => {
 
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`🎭 bAIwor Agentbox running on http://0.0.0.0:${PORT}`);
-  console.log(`⚡ GMI Models Key Injected: ${Boolean(getApiKey()) ? 'YES' : 'NO (Waiting for GMI_MAAS_API_KEY)'}`);
-  console.log(`🔒 Access token ${ACCESS_TOKEN ? 'ACTIVE' : 'disabled'}`);
+  console.log(`⚡ GMI Models Key: ${Boolean(getApiKey()) ? 'INJECTED (ACTIVE)' : 'WAITING FOR INJECTION'}`);
 });
