@@ -1,0 +1,26 @@
+{
+  "name": "@baiwor/agentbox",
+  "version": "1.0.0",
+  "description": "bAIwor Agentbox - Autonomous Web3 & AI Agent Playground for GMI Cloud",
+  "main": "src/server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js"
+  },
+  "keywords": [
+    "baiwor",
+    "agentbox",
+    "gmi-cloud",
+    "web3",
+    "agentic-wallet",
+    "punakawan-ai"
+  ],
+  "author": "Wijang / PT. bAIwor Agentic Indonesia",
+  "license": "MIT",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2"
+  }
+}
